@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="ur">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>TokTik — Coin Send (Prank)</title>
+  <meta name="description" content="TokTik coin send prank (demo only)">
+
+  <!-- Mobile-first TokTik-style dark theme -->
+  <style>
+    /* --- Basic --- */
+    :root{
+      --bg:#0f0f10;
+      --card:#121214;
+      --muted:#9aa0a6;
+      --white:#ffffff;
+      --accent1:#25f4ee; /* cyan */
+      --accent2:#ff004f; /* pink */
+      --glass: rgba(255,255,255,0.03);
+      --shadow: 0 8px 30px rgba(0,0,0,0.6);
+    }
+    *{box-sizing:border-box;font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; direction: ltr;}
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#071017 0%, #0f0f10 100%);color:var(--white);-webkit-font-smoothing:antialiased}
+    .wrap{max-width:420px;margin:18px auto;padding:16px}
+
+    /* --- Header / Logo --- */
+    .top{
+      display:flex;align-items:center;gap:12px;padding:10px 8px;
+    }
+    .brand{
+      width:48px;height:48px;border-radius:12px;
+      background:linear-gradient(135deg,var(--accent1),var(--accent2));
+      display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;color:#081018;
+      box-shadow:0 6px 18px rgba(255,0,80,0.12), inset 0 -4px 12px rgba(0,0,0,0.25);
+    }
+    .title{
+      display:flex;flex-direction:column;
+    }
+    .title .h{font-size:16px;font-weight:700;margin:0}
+    .title .sub{font-size:12px;color:var(--muted);margin-top:2px}
+
+    /* --- Card --- */
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:14px;padding:12px;margin-top:10px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,0.02)}
+    label.small{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+
+    /* --- Username input --- */
+    .username-row{display:flex;gap:8px;align-items:center}
+    .u-input{
+      flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);color:var(--white);font-weight:600
+    }
+    .hint{font-size:12px;color:var(--muted);margin-top:6px}
+
+    /* --- Packages grid --- */
+    .packages{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+    .pkg{
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:10px;padding:10px;text-align:center;border:1px solid rgba(255,255,255,0.03);
+      cursor:pointer;user-select:none;
+    }
+    .pkg .coins{font-weight:800;font-size:14px}
+    .pkg .price{font-size:12px;color:var(--muted);margin-top:6px}
+    .pkg.selected{outline:2px solid rgba(37,244,238,0.12);box-shadow:0 10px 30px rgba(37,244,238,0.06);transform:translateY(-4px)}
+
+    /* --- Custom input --- */
+    .custom-row{display:flex;gap:8px;margin-top:12px}
+    .custom-row input{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--white);font-weight:700}
+    .custom-row button{padding:10px 12px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#081018;font-weight:800;cursor:pointer}
+
+    /* --- Payment methods --- */
+    .payments{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+    .pm{
+      flex:1;min-width:140px;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);display:flex;align-items:center;gap:8px;cursor:pointer
+    }
+    .pm .label{font-weight:700}
+    .pm.selected{outline:2px solid rgba(255,0,79,0.12);box-shadow:0 10px 30px rgba(255,0,79,0.04)}
+    .pm .small{font-size:12px;color:var(--muted)}
+
+    /* --- Summary & Pay button --- */
+    .summary{margin-top:12px;padding:12px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));border:1px solid rgba(255,255,255,0.02)}
+    .row{display:flex;justify-content:space-between;align-items:center}
+    .big{font-weight:800;font-size:18px}
+    .pay-btn{width:100%;padding:14px;border-radius:12px;border:0;margin-top:10px;background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#081018;font-weight:900;font-size:16px;cursor:pointer;box-shadow:0 8px 30px rgba(255,0,80,0.12)}
+
+    /* --- Overlay loader --- */
+    .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:60;background:linear-gradient(180deg, rgba(2,6,23,0.6), rgba(2,6,23,0.85))}
+    .loader-box{width:86%;max-width:360px;background:linear-gradient(180deg,#0b0b0c,#101012);padding:18px;border-radius:14px;text-align:center;border:1px solid rgba(255,255,255,0.03)}
+    .spinner{
+      width:72px;height:72px;margin:14px auto;border-radius:50%;position:relative;
+      background:conic-gradient(var(--accent1), var(--accent2), #ffd1e0, var(--accent1));
+      animation:spin 1s linear infinite;box-shadow:0 8px 30px rgba(255,0,80,0.06);
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* --- Success modal --- */
+    .modal{
+      width:86%;max-width:360px;background:linear-gradient(180deg,#0b0c0d,#0f1011);padding:18px;border-radius:14px;text-align:center;border:1px solid rgba(255,255,255,0.03)
+    }
+    .ok{font-size:36px;margin-bottom:6px}
+    .modal .msg{font-weight:800;margin-top:6px}
+    .modal .sub{font-size:13px;color:var(--muted);margin-top:6px}
+    .close-btn{margin-top:12px;padding:10px 12px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#081018;font-weight:800;cursor:pointer}
+
+    /* --- small screens --- */
+    @media (max-width:420px){
+      .packages{grid-template-columns:repeat(3,1fr);gap:8px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">TK</div>
+      <div class="title">
+        <div class="h">TokTik Coins</div>
+        <div class="sub">Send coins to a user — Demo</div>
+      </div>
+    </div>
+
+    <!-- username -->
+    <div class="card" aria-label="username-card">
+      <label class="small">Recipient Username</label>
+      <div class="username-row">
+        <input id="username" class="u-input" type="text" placeholder="@friend_username" aria-label="username" />
+        <button id="pasteBtn" title="Paste" style="border-radius:10px;padding:10px;border:0;background:transparent;color:var(--accent1);cursor:pointer;font-weight:800">Paste</button>
+      </div>
+      <div class="hint">Username daalain bina spaces ke — e.g. friend_123</div>
+    </div>
+
+    <!-- packages -->
+    <div class="card" style="margin-top:12px">
+      <label class="small">Select Coins</label>
+      <div class="packages" id="packages">
+        <!-- JS injects -->
+      </div>
+
+      <div class="custom-row">
+        <input id="custom" type="number" min="1" placeholder="Custom coins (e.g. 150)" aria-label="custom-coins" />
+        <button id="setCustom">Set</button>
+      </div>
+      <div class="hint" style="margin-top:8px">Prices shown approx. (demo only)</div>
+    </div>
+
+    <!-- payments -->
+    <div class="card" style="margin-top:12px">
+      <label class="small">Payment Method</label>
+      <div class="payments" id="payments">
+        <!-- injected -->
+      </div>
+      <div class="hint" style="margin-top:8px">Real payment disabled — prank demo</div>
+    </div>
+
+    <!-- summary -->
+    <div class="summary">
+      <div class="row">
+        <div class="muted">Selected</div>
+        <div id="selCoins" class="big">—</div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <div class="muted">Amount</div>
+        <div id="selPrice" class="big">—</div>
+      </div>
+
+      <button class="pay-btn" id="payBtn">Pay Now</button>
+    </div>
+  </div>
+
+  <!-- overlay -->
+  <div class="overlay" id="overlay" role="dialog" aria-hidden="true">
+    <div class="loader-box" id="loaderBox">
+      <div style="font-weight:800;font-size:15px">Processing Payment</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:6px">Connecting to TokTik gateway...</div>
+      <div class="spinner" aria-hidden="true"></div>
+      <div style="font-size:13px;color:var(--muted);margin-top:8px">Please wait…</div>
+    </div>
+  </div>
+
+  <!-- success modal (generated dynamically) -->
+
+  <script>
+    // ====== Data ======
+    const PACKAGES = [
+      { coins:70, price:0.99 },
+      { coins:350, price:4.99 },
+      { coins:700, price:9.99 },
+      { coins:1500, price:19.99 },
+      { coins:3500, price:49.99 },
+      { coins:7500, price:99.99 }
+    ];
+
+    const PAY_METHODS = [
+      { id:'card', label:'Credit / Debit Card', sub:'Visa, MasterCard' },
+      { id:'apple', label:'Apple Pay', sub:'Fast & secure' }
+    ];
+
+    // ====== DOM Refs ======
+    const packagesEl = document.getElementById('packages');
+    const paymentsEl = document.getElementById('payments');
+    const selCoinsEl = document.getElementById('selCoins');
+    const selPriceEl = document.getElementById('selPrice');
+    const customInput = document.getElementById('custom');
+    const setCustomBtn = document.getElementById('setCustom');
+    const payBtn = document.getElementById('payBtn');
+    const overlay = document.getElementById('overlay');
+    const usernameInput = document.getElementById('username');
+    const pasteBtn = document.getElementById('pasteBtn');
+
+    let selectedPackage = null;
+    let selectedMethod = PAY_METHODS[0].id;
+
+    // ====== Render functions ======
+    function renderPackages(){
+      PACKAGES.forEach((p, idx) => {
+        const div = document.createElement('div');
+        div.className = 'pkg';
+        div.dataset.idx = idx;
+        div.innerHTML = `<div class="coins">${p.coins} Coins</div><div class="price">$${p.price.toFixed(2)}</div>`;
+        div.addEventListener('click', () => selectPackage(idx));
+        packagesEl.appendChild(div);
+      });
+    }
+
+    function renderPayments(){
+      PAY_METHODS.forEach(pm => {
+        const el = document.createElement('div');
+        el.className = 'pm' + (pm.id===selectedMethod ? ' selected' : '');
+        el.dataset.id = pm.id;
+        el.innerHTML = `<div style="flex:1"><div class="label">${pm.label}</div><div class="small">${pm.sub}</div></div>`;
+        el.addEventListener('click', () => selectMethod(pm.id));
+        paymentsEl.appendChild(el);
+      });
+    }
+
+    // ====== Selection handlers ======
+    function selectPackage(idx){
+      packagesEl.querySelectorAll('.pkg').forEach(e=>e.classList.remove('selected'));
+      const el = packagesEl.querySelector(`[data-idx="${idx}"]`);
+      if(el) el.classList.add('selected');
+      selectedPackage = PACKAGES[idx];
+      customInput.value = '';
+      updateSummary();
+    }
+
+    function selectMethod(id){
+      selectedMethod = id;
+      paymentsEl.querySelectorAll('.pm').forEach(e=>e.classList.remove('selected'));
+      const el = paymentsEl.querySelector(`[data-id="${id}"]`);
+      if(el) el.classList.add('selected');
+    }
+
+    setCustomBtn.addEventListener('click', () => {
+      const val = Number(customInput.value);
+      if(!val || val <= 0){ alert('Please enter a valid number of coins.'); return; }
+      selectedPackage = { coins: val, price: estimatePrice(val) };
+      packagesEl.querySelectorAll('.pkg').forEach(e=>e.classList.remove('selected'));
+      updateSummary();
+    });
+
+    function estimatePrice(coins){
+      // simple linear estimate based on smallest package unit price
+      const unit = PACKAGES[0].price / PACKAGES[0].coins;
+      return +(coins * unit).toFixed(2);
+    }
+
+    function updateSummary(){
+      if(!selectedPackage){ selCoinsEl.textContent='—'; selPriceEl.textContent='—'; return; }
+      selCoinsEl.textContent = selectedPackage.coins + ' Coins';
+      selPriceEl.textContent = '$' + selectedPackage.price.toFixed(2);
+    }
+
+    // paste button tries to paste from clipboard (mobile friendly)
+    pasteBtn.addEventListener('click', async () => {
+      try{
+        const text = await navigator.clipboard.readText();
+        if(text) usernameInput.value = text.trim();
+      }catch(e){
+        alert('Clipboard access nahi hua — manually paste karain.');
+      }
+    });
+
+    // pay flow (fake)
+    payBtn.addEventListener('click', () => {
+      const usernameRaw = usernameInput.value.trim();
+      if(!usernameRaw){ alert('Recipient username daalain pehle.'); usernameInput.focus(); return; }
+      if(!selectedPackage){ alert('Coins select karain ya custom set karain.'); return; }
+
+      // normalize username (ensure @ prefix)
+      let uname = usernameRaw.startsWith('@') ? usernameRaw : '@' + usernameRaw;
+
+      // show overlay loader
+      overlay.style.display = 'flex';
+      overlay.setAttribute('aria-hidden','false');
+
+      // fake 5 second processing (with slight randomization)
+      const delay = 4500 + Math.floor(Math.random()*1000);
+      setTimeout(() => {
+        showSuccess(uname, selectedPackage.coins, selectedPackage.price);
+      }, delay);
+    });
+
+    function showSuccess(username, coins, price){
+      // hide loader content and show modal
+      overlay.innerHTML = '';
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      const tx = fakeTx();
+      modal.innerHTML = `
+        <div class="ok">✅</div>
+        <div class="msg">Payment Successful</div>
+        <div class="sub">${coins} Coins successfully sent to <strong>${escapeHtml(username)}</strong></div>
+        <div class="sub" style="margin-top:6px;color:var(--muted)">$${price.toFixed(2)} — Transaction ID: <strong>${tx}</strong></div>
+        <button class="close-btn" id="closeNow">Close</button>
+      `;
+      overlay.appendChild(modal);
+
+      // close handler restores overlay to original loader for next time
+      document.getElementById('closeNow').addEventListener('click', () => {
+        restoreOverlay();
+      });
+    }
+
+    function restoreOverlay(){
+      overlay.style.display = 'none';
+      overlay.setAttribute('aria-hidden','true');
+      overlay.innerHTML = `
+        <div class="loader-box" id="loaderBox">
+          <div style="font-weight:800;font-size:15px">Processing Payment</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:6px">Connecting to TokTik gateway...</div>
+          <div class="spinner" aria-hidden="true"></div>
+          <div style="font-size:13px;color:var(--muted);margin-top:8px">Please wait…</div>
+        </div>
+      `;
+    }
+
+    function fakeTx(){
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let s = '';
+      for(let i=0;i<8;i++) s += chars[Math.floor(Math.random()*chars.length)];
+      return 'TK-' + s;
+    }
+
+    // small helper to avoid XSS in displayed username
+    function escapeHtml(str){
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // init
+    renderPackages();
+    renderPayments();
+    // pre-select a default package (350 coins)
+    selectPackage(1);
+
+    // allow Enter to set custom
+    customInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') setCustomBtn.click(); });
+
+    // restore overlay to initial state (in case)
+    restoreOverlay();
+  </script>
+</body>
+</html>
